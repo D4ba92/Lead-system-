@@ -1,0 +1,321 @@
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:var(--font-sans,system-ui,sans-serif);background:#f0f4f8;color:#1a1a2e;min-height:100vh}
+.page{max-width:720px;margin:0 auto;padding:2rem 1rem}
+.logo-bar{display:flex;align-items:center;gap:10px;margin-bottom:1.5rem}
+.logo-text{font-size:18px;font-weight:500;letter-spacing:-.3px;color:#1a1a2e}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:#0071e3}
+.card{background:#fff;border:1px solid #dde3ec;border-radius:14px;overflow:hidden;box-shadow:0 1px 4px rgba(0,0,0,.06)}
+.section-block{border:1px solid #dde3ec;border-radius:10px;overflow:hidden;margin-bottom:14px}
+.section-block-header{padding:10px 14px;font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.07em}
+.section-block.basic .section-block-header{background:#e8f0fe;color:#2d56a8;border-bottom:1px solid #c5d5f8}
+.section-block.detail .section-block-header{background:#e6f4ea;color:#2d7a45;border-bottom:1px solid #b8dfc3}
+.section-block.result .section-block-header{background:#fef3e2;color:#8a5a00;border-bottom:1px solid #f5d999}
+.section-block-body{padding:12px 14px;background:#fff;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.section-block-body.single{grid-template-columns:1fr}
+.field{display:flex;flex-direction:column;gap:5px}
+.field label{font-size:11px;color:#6b7280;font-weight:500;text-transform:uppercase;letter-spacing:.04em}
+.field input,.field select,.field textarea{border:1px solid #dde3ec;border-radius:8px;padding:8px 10px;font-size:14px;background:#fafbfd;color:#1a1a2e;width:100%;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:#93b4f5;background:#fff}
+.field textarea{resize:vertical;min-height:76px}
+.submit-btn{width:100%;padding:11px;background:#0071e3;color:#fff;border:none;border-radius:8px;font-size:14px;font-weight:500;cursor:pointer;transition:opacity .15s}
+.submit-btn:hover{opacity:.88}
+.submit-btn:disabled{opacity:.5;cursor:not-allowed}
+.form-footer{padding:14px 18px;background:#f7f9fc;border-top:1px solid #dde3ec}
+.success-msg{display:none;text-align:center;padding:1rem;color:#2d7a45;font-size:14px;background:#e6f4ea;border-radius:8px;margin-top:12px}
+.error-msg{display:none;text-align:center;padding:1rem;color:#a04000;font-size:14px;background:#fff3e0;border-radius:8px;margin-top:12px}
+
+#dashboard-view{display:none}
+.pin-overlay{position:fixed;inset:0;background:rgba(0,0,0,.55);display:flex;align-items:center;justify-content:center;z-index:100}
+.pin-card{background:#fff;border-radius:14px;padding:2rem;width:280px;text-align:center;border:1px solid #dde3ec}
+.pin-card h2{font-size:16px;font-weight:500;margin-bottom:.5rem;color:#1a1a2e}
+.pin-card p{font-size:13px;color:#6b7280;margin-bottom:1rem}
+.pin-dots{display:flex;justify-content:center;gap:10px;margin-bottom:1.25rem}
+.pin-dot{width:14px;height:14px;border-radius:50%;background:#dde3ec;transition:background .1s}
+.pin-dot.filled{background:#1a1a2e}
+.pin-numpad{display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-bottom:.75rem}
+.pin-key{padding:12px;border:1px solid #dde3ec;border-radius:8px;font-size:16px;font-weight:500;cursor:pointer;background:#fff;color:#1a1a2e;transition:background .1s}
+.pin-key:hover{background:#f0f4f8}
+.pin-error{font-size:12px;color:#c0392b;min-height:16px;margin-top:2px}
+
+.db-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:1.25rem}
+.db-header h1{font-size:18px;font-weight:500;color:#1a1a2e}
+.badge{font-size:11px;padding:3px 9px;border-radius:999px;background:#e8f0fe;color:#2d56a8;border:1px solid #c5d5f8;font-weight:500}
+.lead-table{width:100%;border-collapse:collapse;font-size:13px}
+.lead-table th{text-align:left;font-size:11px;font-weight:500;color:#6b7280;text-transform:uppercase;letter-spacing:.06em;padding:8px 10px;border-bottom:1px solid #dde3ec;background:#f7f9fc}
+.lead-table td{padding:9px 10px;border-bottom:1px solid #f0f4f8;vertical-align:middle}
+.lead-table tr:last-child td{border-bottom:none}
+.lead-table tr:hover td{background:#f7f9fc}
+.status-sel{border:1px solid #dde3ec;border-radius:7px;padding:4px 8px;font-size:12px;cursor:pointer;outline:none;font-weight:500;transition:background .15s,color .15s}
+.status-novy{background:#fff;color:#1a1a2e;border-color:#dde3ec}
+.status-odeslany{background:#fff3e0;color:#a04000;border-color:#f5c07a}
+.status-hotovy{background:#e6f4ea;color:#2d7a45;border-color:#8ecba1}
+.detail-btn{background:none;border:1px solid #dde3ec;cursor:pointer;color:#6b7280;padding:4px 8px;border-radius:7px;transition:background .1s;font-size:13px;line-height:1}
+.detail-btn:hover{background:#e8f0fe;color:#2d56a8;border-color:#c5d5f8}
+.empty-state{text-align:center;padding:2.5rem;color:#9ca3af;font-size:13px}
+.loading-state{text-align:center;padding:2.5rem;color:#9ca3af;font-size:13px}
+
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,.45);z-index:200;align-items:center;justify-content:center;padding:1rem}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:14px;border:1px solid #dde3ec;width:100%;max-width:540px;max-height:90vh;overflow-y:auto}
+.modal-header{display:flex;align-items:center;justify-content:space-between;padding:1rem 1.25rem;border-bottom:1px solid #dde3ec;background:#f7f9fc}
+.modal-header h3{font-size:15px;font-weight:500;color:#1a1a2e}
+.modal-close{background:none;border:none;font-size:20px;cursor:pointer;color:#6b7280;line-height:1;padding:2px 6px;border-radius:7px}
+.modal-close:hover{background:#f0f4f8}
+.modal-body{padding:1.25rem}
+.modal-section{margin-bottom:1rem}
+.modal-section-label{font-size:10px;font-weight:500;text-transform:uppercase;letter-spacing:.07em;color:#9ca3af;margin-bottom:.5rem}
+.modal-row{display:flex;gap:6px;margin-bottom:5px;font-size:13px}
+.modal-label{min-width:160px;color:#6b7280;flex-shrink:0}
+.modal-val{color:#1a1a2e;font-weight:500}
+.copy-btn{width:100%;margin-top:1rem;padding:9px;border:1px solid #dde3ec;border-radius:8px;background:#f7f9fc;color:#1a1a2e;font-size:13px;cursor:pointer;font-weight:500;transition:background .1s}
+.copy-btn:hover{background:#e8f0fe}
+.nav-link{font-size:12px;color:#6b7280;cursor:pointer;text-decoration:underline;background:none;border:none;padding:0;margin-bottom:1.5rem;display:inline-block}
+.refresh-btn{font-size:12px;color:#2d56a8;cursor:pointer;background:none;border:1px solid #c5d5f8;border-radius:7px;padding:4px 10px;font-weight:500}
+.refresh-btn:hover{background:#e8f0fe}
+</style>
+
+<!-- FORM VIEW -->
+<div id="form-view">
+<div class="page">
+  <div class="logo-bar"><div class="logo-dot"></div><span class="logo-text">Firemní Lead</span></div>
+  <div class="card">
+    <div style="padding:14px 18px 14px">
+      <div class="section-block basic">
+        <div class="section-block-header">Základní info</div>
+        <div class="section-block-body">
+          <div class="field"><label>Datum</label><input type="date" id="f-datum"></div>
+          <div class="field"><label>Jméno prodejce</label><input type="text" id="f-prodejce" placeholder="Jméno"></div>
+          <div class="field"><label>Firma</label><input type="text" id="f-firma" placeholder="Název firmy"></div>
+          <div class="field"><label>Kontakt</label><input type="text" id="f-kontakt" placeholder="Jméno kontaktní osoby"></div>
+          <div class="field"><label>Prodejna</label>
+            <select id="f-prodejna">
+              <option value="">— Vyberte prodejnu —</option>
+              <option>Flora</option><option>Harfa</option><option>Aupark</option>
+              <option>Futurum</option><option>Zlín</option><option>Olomouc</option>
+              <option>Ostrava</option><option>Opava</option>
+            </select>
+          </div>
+          <div class="field"><label>Velikost firmy / počet zaměstnanců</label><input type="text" id="f-velikost" placeholder="např. 50–100"></div>
+        </div>
+      </div>
+      <div class="section-block detail">
+        <div class="section-block-header">Detail schůzky</div>
+        <div class="section-block-body single">
+          <div class="field"><label>Apple zkušenost</label><input type="text" id="f-zkusenost" placeholder="Jaké Apple produkty firma používá / používala"></div>
+          <div class="field"><label>O čem jsme se bavili na prodejně</label><textarea id="f-tema"></textarea></div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">
+            <div class="field"><label>Jak často aktualizují</label><input type="text" id="f-aktualizace" placeholder="např. každé 3 roky"></div>
+            <div class="field"><label>Číslo faktury</label><input type="text" id="f-faktura" placeholder="nepovinné"></div>
+          </div>
+        </div>
+      </div>
+      <div class="section-block result">
+        <div class="section-block-header">Výsledek &amp; Další kroky</div>
+        <div class="section-block-body single">
+          <div class="field"><label>Výsledek &amp; Další kroky</label><textarea id="f-vysledek"></textarea></div>
+          <div class="field"><label>Poznámky</label><textarea id="f-poznamky" style="min-height:60px"></textarea></div>
+        </div>
+      </div>
+    </div>
+    <div class="form-footer">
+      <button class="submit-btn" id="submit-btn" onclick="submitLead()">Odeslat lead</button>
+      <div class="success-msg" id="success-msg">Lead byl úspěšně uložen.</div>
+      <div class="error-msg" id="error-msg">Nepodařilo se uložit lead. Zkus to znovu.</div>
+    </div>
+  </div>
+  <div style="text-align:center;margin-top:1rem">
+    <button class="nav-link" onclick="showDashboard()">Přejít na dashboard →</button>
+  </div>
+</div>
+</div>
+
+<!-- PIN OVERLAY -->
+<div class="pin-overlay" id="pin-overlay" style="display:none">
+  <div class="pin-card">
+    <h2>Dashboard</h2>
+    <p>Zadejte PIN pro přístup</p>
+    <div class="pin-dots" id="pin-dots">
+      <div class="pin-dot" id="pd0"></div><div class="pin-dot" id="pd1"></div>
+      <div class="pin-dot" id="pd2"></div><div class="pin-dot" id="pd3"></div>
+    </div>
+    <div class="pin-numpad" id="numpad"></div>
+    <div class="pin-error" id="pin-error"></div>
+  </div>
+</div>
+
+<!-- DASHBOARD VIEW -->
+<div id="dashboard-view">
+<div class="page">
+  <div class="db-header">
+    <h1>Firemní leady</h1>
+    <div style="display:flex;align-items:center;gap:8px">
+      <button class="refresh-btn" onclick="loadLeads()">Obnovit</button>
+      <button class="nav-link" style="margin:0" onclick="showForm()">← Zpět na formulář</button>
+    </div>
+  </div>
+  <div class="card">
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid #dde3ec;background:#f7f9fc">
+      <span style="font-size:13px;font-weight:500;color:#1a1a2e">Přehled leadů</span>
+      <span class="badge" id="lead-count">0 leadů</span>
+    </div>
+    <div id="lead-table-wrap">
+      <div class="loading-state" id="loading-state">Načítám leady...</div>
+      <div class="empty-state" id="empty-state" style="display:none">Zatím žádné leady.</div>
+      <table class="lead-table" id="lead-table" style="display:none">
+        <thead><tr>
+          <th style="width:36px">#</th>
+          <th>Firma</th><th>Prodejna</th>
+          <th style="width:140px">Stav</th>
+          <th style="width:44px"></th>
+        </tr></thead>
+        <tbody id="lead-tbody"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+</div>
+
+<!-- DETAIL MODAL -->
+<div class="modal-overlay" id="detail-modal">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="modal-title">Detail leadu</h3>
+      <button class="modal-close" onclick="closeModal()">&#215;</button>
+    </div>
+    <div class="modal-body" id="modal-body"></div>
+  </div>
+</div>
+
+<script>
+const SUPABASE_URL="https://sdhfgoofumrbosogcmpe.supabase.co";
+const SUPABASE_KEY="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InNkaGZnb29mdW1yYm9zb2djbXBlIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzQwMDM3ODgsImV4cCI6MjA4OTU3OTc4OH0.5CN2DNC_SS-Y6Uhjb-19Oqcaw21hF9ALCUcVc7OIJyg";
+const PIN="1234";
+let pinInput="";
+let leads=[];
+
+async function sbFetch(path,opts={}){
+  const res=await fetch(SUPABASE_URL+"/rest/v1/"+path,{
+    headers:{"apikey":SUPABASE_KEY,"Authorization":"Bearer "+SUPABASE_KEY,"Content-Type":"application/json","Prefer":"return=representation",...(opts.headers||{})},
+    ...opts
+  });
+  if(!res.ok){const e=await res.text();throw new Error(e)}
+  const txt=await res.text();
+  return txt?JSON.parse(txt):null;
+}
+
+async function loadLeads(){
+  document.getElementById("loading-state").style.display="block";
+  document.getElementById("empty-state").style.display="none";
+  document.getElementById("lead-table").style.display="none";
+  try{
+    leads=await sbFetch("leady?select=*&order=created_at.asc");
+    renderTable();
+  }catch(e){
+    document.getElementById("loading-state").textContent="Chyba při načítání.";
+  }
+}
+
+function renderTable(){
+  document.getElementById("loading-state").style.display="none";
+  const tbody=document.getElementById("lead-tbody");tbody.innerHTML="";
+  document.getElementById("lead-count").textContent=leads.length+" lead"+(leads.length===1?"":"ů");
+  document.getElementById("empty-state").style.display=leads.length?"none":"block";
+  document.getElementById("lead-table").style.display=leads.length?"table":"none";
+  leads.forEach((l,i)=>{
+    const tr=document.createElement("tr");
+    tr.innerHTML=`<td style="color:#9ca3af;font-size:12px">${i+1}</td>
+      <td style="font-weight:500;color:#1a1a2e">${esc(l.firma)}</td>
+      <td style="color:#6b7280">${esc(l.prodejna)}</td>
+      <td><select class="status-sel ${statusClass(l.stav)}" onchange="changeStatus(${l.id},this.value,this)">
+        <option ${l.stav==="nový"?"selected":""}>nový</option>
+        <option ${l.stav==="odeslaný"?"selected":""}>odeslaný</option>
+        <option ${l.stav==="hotový"?"selected":""}>hotový</option>
+      </select></td>
+      <td><button class="detail-btn" onclick="openDetail(${l.id})">&#9654;</button></td>`;
+    tbody.appendChild(tr);
+  });
+}
+
+function statusClass(v){return v==="odeslaný"?"status-odeslany":v==="hotový"?"status-hotovy":"status-novy"}
+
+async function changeStatus(id,v,sel){
+  sel.className="status-sel "+statusClass(v);
+  try{
+    await sbFetch("leady?id=eq."+id,{method:"PATCH",body:JSON.stringify({stav:v})});
+    const l=leads.find(x=>x.id===id);if(l)l.stav=v;
+  }catch(e){alert("Nepodařilo se uložit stav.")}
+}
+
+const numpad=document.getElementById("numpad");
+[1,2,3,4,5,6,7,8,9,"⌫",0,"OK"].forEach(k=>{
+  const btn=document.createElement("button");btn.className="pin-key";btn.textContent=k;
+  btn.onclick=()=>pinKey(k);numpad.appendChild(btn);
+});
+function pinKey(k){
+  if(k==="⌫")pinInput=pinInput.slice(0,-1);
+  else if(k==="OK"){checkPin();return;}
+  else if(pinInput.length<4)pinInput+=k;
+  updateDots();
+}
+function updateDots(){for(let i=0;i<4;i++)document.getElementById("pd"+i).classList.toggle("filled",i<pinInput.length)}
+function checkPin(){
+  if(pinInput===PIN){
+    document.getElementById("pin-overlay").style.display="none";
+    document.getElementById("form-view").style.display="none";
+    document.getElementById("dashboard-view").style.display="block";
+    loadLeads();
+  }else{
+    document.getElementById("pin-error").textContent="Nesprávný PIN";
+    pinInput="";updateDots();
+  }
+}
+function showDashboard(){pinInput="";updateDots();document.getElementById("pin-error").textContent="";document.getElementById("pin-overlay").style.display="flex"}
+function showForm(){document.getElementById("dashboard-view").style.display="none";document.getElementById("form-view").style.display="block"}
+
+function val(id){return document.getElementById(id).value.trim()}
+
+async function submitLead(){
+  const firma=val("f-firma"),prodejna=val("f-prodejna");
+  if(!firma){alert("Vyplňte prosím název firmy.");return}
+  if(!prodejna){alert("Vyberte prosím prodejnu.");return}
+  const btn=document.getElementById("submit-btn");
+  btn.disabled=true;btn.textContent="Ukládám...";
+  const payload={datum:val("f-datum"),prodejce:val("f-prodejce"),firma,kontakt:val("f-kontakt"),prodejna,velikost:val("f-velikost"),zkusenost:val("f-zkusenost"),tema:val("f-tema"),aktualizace:val("f-aktualizace"),faktura:val("f-faktura"),vysledek:val("f-vysledek"),poznamky:val("f-poznamky"),stav:"nový"};
+  try{
+    await sbFetch("leady",{method:"POST",body:JSON.stringify(payload)});
+    ["f-datum","f-prodejce","f-firma","f-kontakt","f-prodejna","f-velikost","f-zkusenost","f-tema","f-aktualizace","f-faktura","f-vysledek","f-poznamky"].forEach(id=>document.getElementById(id).value="");
+    document.getElementById("f-datum").valueAsDate=new Date();
+    const s=document.getElementById("success-msg");s.style.display="block";setTimeout(()=>s.style.display="none",3000);
+  }catch(e){
+    const er=document.getElementById("error-msg");er.style.display="block";setTimeout(()=>er.style.display="none",3000);
+  }
+  btn.disabled=false;btn.textContent="Odeslat lead";
+}
+
+function esc(s){return(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")}
+
+function openDetail(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  document.getElementById("modal-title").textContent=l.firma||"Lead";
+  const sections=[
+    {label:"Základní info",rows:[["Datum",l.datum],["Jméno prodejce",l.prodejce],["Kontakt",l.kontakt],["Prodejna",l.prodejna],["Velikost firmy",l.velikost]]},
+    {label:"Detail schůzky",rows:[["Apple zkušenost",l.zkusenost],["O čem jsme se bavili",l.tema],["Jak často aktualizují",l.aktualizace],["Číslo faktury",l.faktura]]},
+    {label:"Výsledek & Další kroky",rows:[["Výsledek & Další kroky",l.vysledek],["Poznámky",l.poznamky]]}
+  ];
+  document.getElementById("modal-body").innerHTML=sections.map(s=>{
+    const rows=s.rows.filter(r=>r[1]);if(!rows.length)return"";
+    return`<div class="modal-section"><div class="modal-section-label">${s.label}</div>${rows.map(r=>`<div class="modal-row"><span class="modal-label">${r[0]}</span><span class="modal-val">${esc(r[1])}</span></div>`).join("")}</div>`;
+  }).join("")+`<button class="copy-btn" onclick="copyLead(${l.id})">Kopírovat pro e-mail</button>`;
+  document.getElementById("detail-modal").classList.add("open");
+}
+function closeModal(){document.getElementById("detail-modal").classList.remove("open")}
+
+function copyLead(id){
+  const l=leads.find(x=>x.id===id);if(!l)return;
+  const txt=["FIREMNÍ LEAD","─────────────────────",l.datum?"Datum: "+l.datum:"",l.prodejce?"Prodejce: "+l.prodejce:"",l.prodejna?"Prodejna: "+l.prodejna:"","","FIRMA & KONTAKT",l.firma?"Firma: "+l.firma:"",l.kontakt?"Kontakt: "+l.kontakt:"",l.velikost?"Velikost firmy: "+l.velikost:"","","DETAIL",l.zkusenost?"Apple zkušenost: "+l.zkusenost:"",l.tema?"O čem jsme se bavili: "+l.tema:"",l.aktualizace?"Jak často aktualizují: "+l.aktualizace:"",l.vysledek?"Výsledek & Další kroky: "+l.vysledek:"",l.faktura?"Číslo faktury: "+l.faktura:"",l.poznamky?"Poznámky: "+l.poznamky:""].filter(Boolean).join("\n");
+  navigator.clipboard.writeText(txt).then(()=>{const btn=document.querySelector(".copy-btn");btn.textContent="Zkopírováno!";setTimeout(()=>btn.textContent="Kopírovat pro e-mail",2000)});
+}
+
+document.getElementById("f-datum").valueAsDate=new Date();
+</script>
